@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ҰЗЫН СӨЗ – КӨП СӨЗ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0072BC;
+            --secondary: #F2C14E;
+            --bg: #F4F7F6;
+            --text: #2C3E50;
+            --white: #FFFFFF;
+            --green: #27ae60;
+            --red: #e74c3c;
+        }
+
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Header Style */
+        header {
+            background: var(--primary);
+            color: var(--white);
+            width: 100%;
+            padding: 15px 0;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        h1 {
+            font-family: 'Montserrat', sans-serif;
+            margin: 0;
+            font-size: 22px;
+            text-transform: uppercase;
+        }
+
+        /* Game Container */
+        .container {
+            width: 90%;
+            max-width: 500px;
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            padding-bottom: 50px;
+        }
+
+        /* Score & Timer Board */
+        .stats-board {
+            display: flex;
+            justify-content: space-between;
+            background: var(--white);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            font-weight: bold;
+        }
+
+        .stat-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-val {
+            font-size: 20px;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+
+        /* Main Word Display */
+        .main-word-box {
+            background: var(--white);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            border: 2px solid var(--secondary);
+            box-shadow: 0 4px 0 rgba(242, 193, 78, 0.4);
+        }
+
+        .main-word {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 28px;
+            letter-spacing: 2px;
+            color: var(--text);
+            font-weight: 800;
+            word-break: break-all;
+        }
+
+        /* Input Area */
+        .input-area {
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #ddd;
+            font-size: 18px;
+            outline: none;
+            text-transform: uppercase;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--primary);
+        }
+
+        button.submit-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #005a96;
+            transition: transform 0.1s;
+        }
+
+        button.submit-btn:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        /* Found Words List */
+        .found-words {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .word-tag {
+            background: var(--white);
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            border: 1px solid #eee;
+            animation: popIn 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .word-tag.bonus {
+            background: var(--secondary);
+            color: #333;
+            border-color: #e6b333;
+            font-weight: bold;
+        }
+
+        .score-badge {
+            font-size: 10px;
+            background: rgba(0,0,0,0.1);
+            padding: 2px 5px;
+            border-radius: 5px;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Message/Notification */
+        .message {
+            text-align: center;
+            min-height: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .error { color: var(--red); }
+        .success { color: var(--green); }
+
+        /* Menu Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            width: 85%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-start { background: var(--primary); color: white; }
+        .btn-time { background: var(--secondary); color: #333; }
+        .btn-daily { background: #8e44ad; color: white; }
+
+        .hidden { display: none; }
+
+        /* Custom Keyboard Helper (Optional visual cue) */
+        .letters-available {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+        .l-chip {
+            font-size: 12px;
+            color: #999;
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Ұзын сөз - көп сөз</h1>
+    </header>
+
+    <div id="startMenu" class="modal">
+        <div class="modal-content">
+            <h2 style="color:var(--primary)">Ойын режимін таңда</h2>
+            <p>Берілген ұзын сөзден қысқа сөздер құра!</p>
+            <button class="btn btn-start" onclick="startGame('classic')">☕ Еркін режим</button>
+            <button class="btn btn-time" onclick="startGame('timer')">⏱ 60 секунд</button>
+            <button class="btn btn-daily" onclick="startGame('daily')">📅 Күнделікті сөз</button>
+        </div>
+    </div>
+
+    <div id="resultModal" class="modal hidden">
+        <div class="modal-content">
+            <h2>Ойын аяқталды!</h2>
+            <p>Сіздің ұпайыңыз:</p>
+            <h1 id="finalScore" style="font-size: 48px; color: var(--primary); margin: 10px 0;">0</h1>
+            <p>Табылған сөздер: <span id="finalCount">0</span></p>
+            <button class="btn btn-start" onclick="location.reload()">Қайта ойнау</button>
+        </div>
+    </div>
+
+    <div class="container">
+        
+        <div class="stats-board">
+            <div class="stat-box">
+                <span class="stat-val" id="score">0</span>
+                <span class="stat-label">Ұпай</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-val" id="timer">--:--</span>
+                <span class="stat-label">Уақыт</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-val" id="wordCount">0</span>
+                <span class="stat-label">Сөз</span>
+            </div>
+        </div>
+
+        <div class="main-word-box">
+            <div class="main-word" id="displayWord">...</div>
+        </div>
+
+        <div class="message" id="messageBox">Сөз жазып, тексеріңіз</div>
+
+        <div class="input-area">
+            <input type="text" id="wordInput" placeholder="Сөз жаз..." autocomplete="off">
+            <button class="submit-btn" onclick="checkWord()">></button>
+        </div>
+
+        <div class="found-words" id="foundList">
+            </div>
+
+        <button onclick="location.reload()" style="background:none; border:none; color:#999; margin-top:20px; cursor:pointer;">Шығу / Артқа</button>
+
+    </div>
+
+    <script>
+        // Game Data
+        const longWords = [
+            "ТӘУЕЛСІЗДІК", 
+            "МЕМЛЕКЕТШІЛДІК", 
+            "ЖЕРҰЙЫҚТАНДЫРУ", 
+            "ПАТРИОТИЗМ", 
+            "КОММУНИКАЦИЯЛЫҚ",
+            "АҚПАРАТТАНДЫРУ",
+            "БОЛАШАҚТЫҚ",
+            "ҚАУІПСІЗДІК"
+        ];
+
+        let currentWord = "";
+        let foundWords = new Set();
+        let score = 0;
+        let timeLeft = 60;
+        let timerInterval;
+        let gameMode = 'classic';
+
+        // DOM Elements
+        const displayWordEl = document.getElementById('displayWord');
+        const inputEl = document.getElementById('wordInput');
+        const messageEl = document.getElementById('messageBox');
+        const foundListEl = document.getElementById('foundList');
+        const scoreEl = document.getElementById('score');
+        const wordCountEl = document.getElementById('wordCount');
+        const timerEl = document.getElementById('timer');
+        const startMenu = document.getElementById('startMenu');
+        const resultModal = document.getElementById('resultModal');
+
+        // Start Game Logic
+        function startGame(mode) {
+            gameMode = mode;
+            startMenu.classList.add('hidden');
+            
+            // Select Word
+            if (mode === 'daily') {
+                // Simple daily hash based on date
+                const date = new Date();
+                const dayIndex = (date.getDate() + date.getMonth()) % longWords.length;
+                currentWord = longWords[dayIndex];
+            } else {
+                currentWord = longWords[Math.floor(Math.random() * longWords.length)];
+            }
+
+            displayWordEl.textContent = currentWord;
+            inputEl.focus();
+
+            if (mode === 'timer') {
+                timerEl.textContent = "60";
+                startTimer();
+            } else {
+                timerEl.textContent = "∞";
+            }
+        }
+
+        // Timer Logic
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerEl.textContent = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function endGame() {
+            inputEl.disabled = true;
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('finalCount').textContent = foundWords.size;
+            resultModal.classList.remove('hidden');
+        }
+
+        // Helper: Check if letters exist in main word
+        function canFormWord(input, source) {
+            const sourceCounts = {};
+            // Count source letters
+            for (let char of source) {
+                sourceCounts[char] = (sourceCounts[char] || 0) + 1;
+            }
+            
+            // Check input letters
+            for (let char of input) {
+                if (!sourceCounts[char] || sourceCounts[char] === 0) {
+                    return false;
+                }
+                sourceCounts[char]--;
+            }
+            return true;
+        }
+
+        // Main Game Logic
+        function checkWord() {
+            let userText = inputEl.value.trim().toUpperCase();
+            inputEl.value = "";
+            inputEl.focus();
+
+            if (!userText) return;
+
+            // 1. Check Length
+            if (userText.length < 2) {
+                showMessage("Сөз тым қысқа! (2+ әріп)", "error");
+                return;
+            }
+
+            // 2. Check Duplicate
+            if (foundWords.has(userText)) {
+                showMessage("Бұл сөз табылды!", "error");
+                return;
+            }
+
+            // 3. Check Letters Availability
+            if (!canFormWord(userText, currentWord)) {
+                showMessage("Мұндай әріптер жоқ!", "error");
+                return;
+            }
+
+            // Note: In a real app, we would check a Dictionary API here.
+            // For this frontend-only demo, we accept the word if it uses valid letters.
+            // We can add a visual note "Valid structure" 
+
+            addScore(userText);
+        }
+
+        function addScore(word) {
+            foundWords.add(word);
+            
+            // Calculate Points
+            let points = 0;
+            let length = word.length;
+            let isBonus = false;
+
+            if (length <= 3) points = 1;
+            else if (length <= 5) points = 2;
+            else {
+                points = 5; // Bonus for 6+ letters
+                isBonus = true;
+            }
+
+            score += points;
+            
+            // Update UI
+            scoreEl.textContent = score;
+            wordCountEl.textContent = foundWords.size;
+
+            // Add tag to list
+            const tag = document.createElement('div');
+            tag.className = `word-tag ${isBonus ? 'bonus' : ''}`;
+            tag.innerHTML = `${word} <span class="score-badge">+${points}</span>`;
+            foundListEl.prepend(tag); // Add to top
+
+            showMessage(`Тамаша! +${points} ұпай`, "success");
+        }
+
+        function showMessage(text, type) {
+            messageEl.textContent = text;
+            messageEl.className = `message ${type}`;
+            setTimeout(() => {
+                messageEl.textContent = "Сөз жазып, тексеріңіз";
+                messageEl.className = "message";
+            }, 2000);
+        }
+
+        // Enter key support
+        inputEl.addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                checkWord();
+            }
+        });
+
+    </script>
+</body>
+</html>

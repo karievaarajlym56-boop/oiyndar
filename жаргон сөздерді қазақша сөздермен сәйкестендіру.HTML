@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="kk" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Қазақ Жаргон Сәйкестендіру</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+    }
+    
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+    
+    @keyframes bounce {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    
+    .shake {
+      animation: shake 0.3s ease-in-out;
+    }
+    
+    .bounce {
+      animation: bounce 0.3s ease-in-out;
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full">
+  <div id="app" class="w-full h-full"></div>
+  <script>
+    const defaultConfig = {
+      background_color: "#f0f4f8",
+      card_color: "#ffffff",
+      text_color: "#1e293b",
+      correct_color: "#10b981",
+      incorrect_color: "#ef4444",
+      button_color: "#3b82f6",
+      font_family: "system-ui",
+      font_size: 16,
+      title_text: "Қазақ Жаргон Сәйкестендіру Ойыны",
+      instruction_text: "Жаргон сөздерді олардың мағыналарымен сәйкестендіріңіз"
+    };
+
+    const words = [
+      { word: "Изи", meaning: "Оңай, жеңіл" },
+      { word: "Мем", meaning: "Әзілді сурет немесе видео" },
+      { word: "Кент", meaning: "Дос, жолдас" },
+      { word: "От души", meaning: "Шын жүректен" },
+      { word: "Тренд", meaning: "Танымал, үрдіс" },
+      { word: "Четко", meaning: "Дәл, нақты" },
+      { word: "Базар жоқ", meaning: "Келісемін, дұрыс" },
+      { word: "Краш", meaning: "Ұнайтын адам" },
+      { word: "Трек", meaning: "Ән, музыка" },
+      { word: "Топ", meaning: "Тамаша, керемет" }
+    ];
+
+    let selectedWord = null;
+    let selectedMeaning = null;
+    let matchedPairs = new Set();
+    let incorrectPairs = new Map();
+    let score = 0;
+    let attempts = 0;
+
+    function shuffleArray(array) {
+      const newArray = [...array];
+      for (let i = newArray.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+      }
+      return newArray;
+    }
+
+    const shuffledWords = shuffleArray(words);
+    const shuffledMeanings = shuffleArray(words.map(w => ({ word: w.word, meaning: w.meaning })));
+
+    function selectWord(word) {
+      if (matchedPairs.has(word)) return;
+      
+      selectedWord = word;
+      
+      if (selectedMeaning) {
+        checkMatch();
+      }
+      
+      render();
+    }
+
+    function selectMeaning(meaning) {
+      if ([...matchedPairs].some(w => words.find(item => item.word === w)?.meaning === meaning)) return;
+      
+      selectedMeaning = meaning;
+      
+      if (selectedWord) {
+        checkMatch();
+      }
+      
+      render();
+    }
+
+    function checkMatch() {
+      const correctMeaning = words.find(w => w.word === selectedWord)?.meaning;
+      attempts++;
+      
+      if (correctMeaning === selectedMeaning) {
+        matchedPairs.add(selectedWord);
+        incorrectPairs.delete(selectedWord);
+        score++;
+        
+        const wordBtn = document.querySelector(`[data-word="${selectedWord}"]`);
+        const meaningBtn = document.querySelector(`[data-meaning="${selectedMeaning}"]`);
+        
+        if (wordBtn) wordBtn.classList.add('bounce');
+        if (meaningBtn) meaningBtn.classList.add('bounce');
+      } else {
+        incorrectPairs.set(selectedWord, { selected: selectedMeaning, correct: correctMeaning });
+        
+        const wordBtn = document.querySelector(`[data-word="${selectedWord}"]`);
+        const meaningBtn = document.querySelector(`[data-meaning="${selectedMeaning}"]`);
+        
+        if (wordBtn) wordBtn.classList.add('shake');
+        if (meaningBtn) meaningBtn.classList.add('shake');
+        
+        setTimeout(() => {
+          if (wordBtn) wordBtn.classList.remove('shake');
+          if (meaningBtn) meaningBtn.classList.remove('shake');
+        }, 300);
+      }
+      
+      selectedWord = null;
+      selectedMeaning = null;
+      
+      setTimeout(() => {
+        render();
+      }, 300);
+    }
+
+    function resetGame() {
+      matchedPairs.clear();
+      incorrectPairs.clear();
+      selectedWord = null;
+      selectedMeaning = null;
+      score = 0;
+      attempts = 0;
+      render();
+    }
+
+    function render() {
+      const config = window.elementSdk?.config || defaultConfig;
+      const customFont = config.font_family || defaultConfig.font_family;
+      const baseFontStack = 'system-ui, -apple-system, sans-serif';
+      const baseSize = config.font_size || defaultConfig.font_size;
+
+      const app = document.getElementById('app');
+      app.style.backgroundColor = config.background_color || defaultConfig.background_color;
+      app.style.fontFamily = `${customFont}, ${baseFontStack}`;
+      app.style.padding = '32px';
+      app.style.overflowY = 'auto';
+
+      const allMatched = matchedPairs.size === words.length;
+
+      app.innerHTML = `
+        <div style="max-width: 1200px; margin: 0 auto;">
+          <div style="text-align: center; margin-bottom: ${baseSize * 2}px;">
+            <h1 style="font-size: ${baseSize * 2}px; font-weight: bold; color: ${config.text_color || defaultConfig.text_color}; margin-bottom: ${baseSize * 0.5}px;">
+              ${config.title_text || defaultConfig.title_text}
+            </h1>
+            <p style="font-size: ${baseSize * 1.125}px; color: ${config.text_color || defaultConfig.text_color}; opacity: 0.7;">
+              ${config.instruction_text || defaultConfig.instruction_text}
+            </p>
+            <div style="margin-top: ${baseSize}px; font-size: ${baseSize}px; color: ${config.text_color || defaultConfig.text_color}; display: flex; gap: ${baseSize}px; justify-content: center; align-items: center;">
+              <span style="background-color: ${config.card_color || defaultConfig.card_color}; padding: ${baseSize * 0.5}px ${baseSize}px; border-radius: 999px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                Дұрыс: ${matchedPairs.size} / ${words.length}
+              </span>
+              <span style="background-color: ${config.button_color || defaultConfig.button_color}; color: white; padding: ${baseSize * 0.5}px ${baseSize}px; border-radius: 999px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); font-weight: 600;">
+                Балл: ${score} / 10
+              </span>
+            </div>
+          </div>
+
+
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: ${baseSize * 2}px; margin-bottom: ${baseSize * 2}px;">
+            <div>
+              <h2 style="font-size: ${baseSize * 1.25}px; font-weight: 600; color: ${config.text_color || defaultConfig.text_color}; margin-bottom: ${baseSize}px;">Жаргон сөздер</h2>
+              <div style="display: flex; flex-direction: column; gap: ${baseSize * 0.75}px;">
+                ${shuffledWords.map(item => {
+                  const isMatched = matchedPairs.has(item.word);
+                  const isIncorrect = incorrectPairs.has(item.word);
+                  const isSelected = selectedWord === item.word;
+                  
+                  let bgColor = config.card_color || defaultConfig.card_color;
+                  let borderColor = 'transparent';
+                  let textColor = config.text_color || defaultConfig.text_color;
+                  
+                  if (isMatched) {
+                    bgColor = config.correct_color || defaultConfig.correct_color;
+                    textColor = 'white';
+                  } else if (isIncorrect) {
+                    bgColor = config.incorrect_color || defaultConfig.incorrect_color;
+                    textColor = 'white';
+                  } else if (isSelected) {
+                    borderColor = config.button_color || defaultConfig.button_color;
+                  }
+                  
+                  return `
+                    <button 
+                      data-word="${item.word}"
+                      onclick="selectWord('${item.word}')"
+                      style="background-color: ${bgColor}; color: ${textColor}; padding: ${baseSize}px; border-radius: 12px; border: 3px solid ${borderColor}; font-size: ${baseSize * 1.125}px; font-weight: 500; text-align: left; cursor: ${isMatched ? 'default' : 'pointer'}; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"
+                      ${isMatched ? 'disabled' : ''}
+                    >
+                      ${item.word}
+                      ${isIncorrect ? `<div style="font-size: ${baseSize * 0.875}px; margin-top: ${baseSize * 0.25}px; opacity: 0.9;">Дұрысы: ${incorrectPairs.get(item.word).correct}</div>` : ''}
+                    </button>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+
+            <div>
+              <h2 style="font-size: ${baseSize * 1.25}px; font-weight: 600; color: ${config.text_color || defaultConfig.text_color}; margin-bottom: ${baseSize}px;">Мағыналары</h2>
+              <div style="display: flex; flex-direction: column; gap: ${baseSize * 0.75}px;">
+                ${shuffledMeanings.map(item => {
+                  const isMatched = [...matchedPairs].some(w => words.find(word => word.word === w)?.meaning === item.meaning);
+                  const isSelected = selectedMeaning === item.meaning;
+                  
+                  let bgColor = config.card_color || defaultConfig.card_color;
+                  let borderColor = 'transparent';
+                  let textColor = config.text_color || defaultConfig.text_color;
+                  
+                  if (isMatched) {
+                    bgColor = config.correct_color || defaultConfig.correct_color;
+                    textColor = 'white';
+                  } else if (isSelected) {
+                    borderColor = config.button_color || defaultConfig.button_color;
+                  }
+                  
+                  return `
+                    <button 
+                      data-meaning="${item.meaning}"
+                      onclick="selectMeaning('${item.meaning}')"
+                      style="background-color: ${bgColor}; color: ${textColor}; padding: ${baseSize}px; border-radius: 12px; border: 3px solid ${borderColor}; font-size: ${baseSize * 1.125}px; font-weight: 500; text-align: left; cursor: ${isMatched ? 'default' : 'pointer'}; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"
+                      ${isMatched ? 'disabled' : ''}
+                    >
+                      ${item.meaning}
+                    </button>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: center; gap: ${baseSize * 2}px; flex-wrap: wrap;">
+            ${allMatched ? `
+              <div style="text-align: center;">
+                <div style="font-size: ${baseSize * 4}px; animation: bounce 1s infinite;">🏆</div>
+                <p style="font-size: ${baseSize * 0.875}px; color: ${config.text_color || defaultConfig.text_color}; margin-top: ${baseSize * 0.5}px; font-weight: 600;">Жеңімпаз!</p>
+              </div>
+            ` : ''}
+            
+            <div style="text-align: center;">
+              <div style="background-color: ${config.card_color || defaultConfig.card_color}; padding: ${baseSize * 1.5}px ${baseSize * 2}px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin-bottom: ${baseSize}px;">
+                <p style="font-size: ${baseSize * 0.875}px; color: ${config.text_color || defaultConfig.text_color}; opacity: 0.7; margin: 0 0 ${baseSize * 0.5}px 0;">Жиынтық балл</p>
+                <p style="font-size: ${baseSize * 2}px; color: ${config.button_color || defaultConfig.button_color}; font-weight: bold; margin: 0;">
+                  ${score} / 10
+                </p>
+              </div>
+              <button 
+                onclick="resetGame()"
+                style="background-color: ${config.button_color || defaultConfig.button_color}; color: white; padding: ${baseSize * 0.875}px ${baseSize * 2}px; border-radius: 12px; font-size: ${baseSize}px; font-weight: 600; cursor: pointer; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: transform 0.2s; width: 100%;"
+                onmouseover="this.style.transform='scale(1.05)'"
+                onmouseout="this.style.transform='scale(1)'"
+              >
+                Қайта бастау
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    window.selectWord = selectWord;
+    window.selectMeaning = selectMeaning;
+    window.resetGame = resetGame;
+
+    async function onConfigChange(config) {
+      render();
+    }
+
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities: (config) => ({
+          recolorables: [
+            {
+              get: () => config.background_color || defaultConfig.background_color,
+              set: (value) => {
+                config.background_color = value;
+                window.elementSdk.setConfig({ background_color: value });
+              }
+            },
+            {
+              get: () => config.card_color || defaultConfig.card_color,
+              set: (value) => {
+                config.card_color = value;
+                window.elementSdk.setConfig({ card_color: value });
+              }
+            },
+            {
+              get: () => config.text_color || defaultConfig.text_color,
+              set: (value) => {
+                config.text_color = value;
+                window.elementSdk.setConfig({ text_color: value });
+              }
+            },
+            {
+              get: () => config.button_color || defaultConfig.button_color,
+              set: (value) => {
+                config.button_color = value;
+                window.elementSdk.setConfig({ button_color: value });
+              }
+            }
+          ],
+          borderables: [],
+          fontEditable: {
+            get: () => config.font_family || defaultConfig.font_family,
+            set: (value) => {
+              config.font_family = value;
+              window.elementSdk.setConfig({ font_family: value });
+            }
+          },
+          fontSizeable: {
+            get: () => config.font_size || defaultConfig.font_size,
+            set: (value) => {
+              config.font_size = value;
+              window.elementSdk.setConfig({ font_size: value });
+            }
+          }
+        }),
+        mapToEditPanelValues: (config) => new Map([
+          ["title_text", config.title_text || defaultConfig.title_text],
+          ["instruction_text", config.instruction_text || defaultConfig.instruction_text]
+        ])
+      });
+    }
+
+    render();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9acb43df06e3bbc6',t:'MTc2NTUyMTk5MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

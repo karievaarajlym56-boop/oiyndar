@@ -1,0 +1,565 @@
+<!doctype html>
+<html lang="kk">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Қазақ Тілі Табу Ойыны</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+        body {
+            box-sizing: border-box;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body, .game-wrapper {
+            height: 100%;
+            width: 100%;
+        }
+
+        .game-wrapper {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 2rem;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-auto;
+        }
+
+        .game-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .game-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .game-title {
+            font-size: 2.5rem;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        .instruction {
+            font-size: 1.1rem;
+            color: #555;
+        }
+
+        .score-board {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 1rem 2rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .score-item {
+            font-size: 1.2rem;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .score-number {
+            color: #667eea;
+            font-size: 1.5rem;
+            margin-left: 0.5rem;
+        }
+
+        .image-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s ease;
+        }
+
+        .image-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            margin-bottom: 2rem;
+            border-radius: 15px;
+            overflow: hidden;
+            background: #f0f0f0;
+        }
+
+        .image-svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .image-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(6, 1fr);
+            gap: 3px;
+            background: transparent;
+            transition: opacity 0.4s ease;
+        }
+
+        .mosaic-tile {
+            background: #667eea;
+            border-radius: 3px;
+            transition: opacity 0.4s ease;
+        }
+
+        .mosaic-tile.visible {
+            opacity: 0;
+        }
+
+        .image-overlay.revealed .mosaic-tile {
+            opacity: 0;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .option-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 1.2rem;
+            font-size: 1.1rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .option-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .option-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .option-btn.correct {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
+            animation: pulse 0.5s ease;
+        }
+
+        .option-btn.incorrect {
+            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .feedback {
+            text-align: center;
+            font-size: 1.2rem;
+            margin-top: 1rem;
+            font-weight: 600;
+            min-height: 30px;
+        }
+
+        .feedback.correct {
+            color: #56ab2f;
+        }
+
+        .feedback.incorrect {
+            color: #eb3349;
+        }
+
+        .next-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            border-radius: 12px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(245, 87, 108, 0.3);
+        }
+
+        .next-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(245, 87, 108, 0.4);
+        }
+
+        .completion-screen {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .completion-title {
+            font-size: 2.5rem;
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+
+        .completion-emoji {
+            font-size: 5rem;
+            margin-bottom: 1rem;
+        }
+
+        .trophy-container {
+            margin: 2rem 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .completion-score {
+            font-size: 1.8rem;
+            color: #333;
+            margin-bottom: 2rem;
+        }
+
+        .restart-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 1.2rem 3rem;
+            font-size: 1.2rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .restart-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+    </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+  <main class="game-wrapper">
+   <div class="game-container">
+    <header class="game-header">
+     <h1 class="game-title" id="gameTitle">Бұл не?</h1>
+     <p class="instruction" id="instructionText">Суреттегі затты дұрыс табыңыз</p>
+    </header>
+    <div class="score-board">
+     <div class="score-item">
+      Сұрақ: <span class="score-number" id="currentQuestion">1</span> / <span id="totalQuestions">10</span>
+     </div>
+     <div class="score-item">
+      Ұпай: <span class="score-number" id="score">0</span>
+     </div>
+    </div>
+    <div id="gameContent"></div>
+   </div>
+  </main>
+  <script>
+        const defaultConfig = {
+            game_title: "Бұл не?",
+            instruction_text: "Суреттегі затты дұрыс табыңыз",
+            primary_color: "#667eea",
+            secondary_color: "#764ba2",
+            correct_color: "#56ab2f",
+            incorrect_color: "#eb3349"
+        };
+
+        let config = { ...defaultConfig };
+
+        const questions = [
+            {
+                id: 1,
+                correctAnswer: "Мысық",
+                options: ["Ит", "Қоян", "Мысық", "Тышқан"],
+                svg: '<svg viewBox="0 0 200 200"><ellipse cx="100" cy="110" rx="45" ry="40" fill="#FFA500"/><circle cx="100" cy="75" rx="35" ry="38" fill="#FFA500"/><path d="M75 45 L70 15 L80 40 Z" fill="#FFA500"/><path d="M125 45 L130 15 L120 40 Z" fill="#FFA500"/><circle cx="88" cy="72" r="6" fill="#000"/><circle cx="112" cy="72" r="6" fill="#000"/><circle cx="90" cy="70" r="2" fill="#FFF"/><circle cx="114" cy="70" r="2" fill="#FFF"/><ellipse cx="100" cy="82" rx="8" ry="6" fill="#FFB6C1"/><path d="M100 82 L100 88" stroke="#000" stroke-width="2"/><path d="M100 88 Q95 92, 90 90" stroke="#000" stroke-width="2" fill="none"/><path d="M100 88 Q105 92, 110 90" stroke="#000" stroke-width="2" fill="none"/><line x1="100" y1="82" x2="70" y2="75" stroke="#000" stroke-width="1.5"/><line x1="100" y1="82" x2="130" y2="75" stroke="#000" stroke-width="1.5"/><line x1="100" y1="85" x2="70" y2="82" stroke="#000" stroke-width="1.5"/><line x1="100" y1="85" x2="130" y2="82" stroke="#000" stroke-width="1.5"/><ellipse cx="135" cy="100" rx="25" ry="12" fill="#FFA500" transform="rotate(25 135 100)"/><ellipse cx="65" cy="100" rx="25" ry="12" fill="#FFA500" transform="rotate(-25 65 100)"/></svg>'
+            },
+            {
+                id: 2,
+                correctAnswer: "Алма",
+                options: ["Алмұрт", "Алма", "Шие", "Қарағат"],
+                svg: '<svg viewBox="0 0 200 200"><ellipse cx="100" cy="105" rx="50" ry="55" fill="#FF6347"/><ellipse cx="95" cy="100" rx="45" ry="50" fill="#DC143C"/><ellipse cx="110" cy="115" rx="20" ry="25" fill="#FF7F7F" opacity="0.5"/><path d="M100 50 Q100 35, 105 25" stroke="#8B4513" stroke-width="5" fill="none" stroke-linecap="round"/><ellipse cx="115" cy="30" rx="18" ry="12" fill="#228B22"/><ellipse cx="122" cy="28" rx="12" ry="8" fill="#32CD32"/></svg>'
+            },
+            {
+                id: 3,
+                correctAnswer: "Балық",
+                options: ["Дельфин", "Акула", "Кит", "Балық"],
+                svg: '<svg viewBox="0 0 200 200"><ellipse cx="105" cy="100" rx="70" ry="38" fill="#1E90FF"/><ellipse cx="110" cy="95" rx="65" ry="32" fill="#4169E1"/><path d="M35 100 L10 80 L10 120 Z" fill="#1E90FF"/><path d="M105 62 L115 35 L95 60 Z" fill="#1E90FF"/><path d="M105 138 L115 165 L95 140 Z" fill="#1E90FF"/><circle cx="145" cy="92" r="7" fill="#000"/><circle cx="148" cy="90" r="3" fill="#FFF"/><path d="M175 85 Q185 90, 185 100 Q185 110, 175 115 Z" fill="#4169E1"/><ellipse cx="120" cy="88" rx="15" ry="8" fill="#87CEEB" opacity="0.6"/></svg>'
+            },
+            {
+                id: 4,
+                correctAnswer: "Гүл",
+                options: ["Ағаш", "Гүл", "Шөп", "Бұта"],
+                svg: '<svg viewBox="0 0 200 200"><circle cx="100" cy="80" r="15" fill="#FFD700"/><ellipse cx="75" cy="65" rx="20" ry="28" fill="#FF69B4" transform="rotate(-35 75 65)"/><ellipse cx="125" cy="65" rx="20" ry="28" fill="#FF1493" transform="rotate(35 125 65)"/><ellipse cx="75" cy="95" rx="20" ry="28" fill="#FF1493" transform="rotate(35 75 95)"/><ellipse cx="125" cy="95" rx="20" ry="28" fill="#FF69B4" transform="rotate(-35 125 95)"/><ellipse cx="100" cy="50" rx="20" ry="28" fill="#FF69B4"/><ellipse cx="100" cy="110" rx="20" ry="28" fill="#FF1493"/><path d="M100 110 L100 170" stroke="#228B22" stroke-width="6" fill="none"/><ellipse cx="85" cy="130" rx="22" ry="12" fill="#32CD32" transform="rotate(-25 85 130)"/><ellipse cx="115" cy="145" rx="18" ry="10" fill="#3CB371" transform="rotate(20 115 145)"/></svg>'
+            },
+            {
+                id: 5,
+                correctAnswer: "Ұшақ",
+                options: ["Автобус", "Ұшақ", "Велосипед", "Пойыз"],
+                svg: '<svg viewBox="0 0 200 200"><ellipse cx="100" cy="100" rx="60" ry="18" fill="#4A90E2"/><ellipse cx="95" cy="98" rx="55" ry="15" fill="#5DA3E8"/><path d="M40 100 L20 85 L22 100 L20 115 Z" fill="#4A90E2"/><ellipse cx="100" cy="100" rx="45" ry="25" fill="#5DA3E8" transform="rotate(-10 100 100)"/><ellipse cx="60" cy="105" rx="35" ry="8" fill="#4A90E2" transform="rotate(20 60 105)"/><ellipse cx="60" cy="95" rx="35" ry="8" fill="#4A90E2" transform="rotate(-20 60 95)"/><circle cx="130" cy="100" r="8" fill="#87CEEB"/><circle cx="120" cy="100" r="6" fill="#B0D4F1"/><path d="M160 95 L175 88 L175 100 Q175 105, 170 105 L160 105 Z" fill="#E74C3C"/><rect x="85" y="88" width="8" height="5" fill="#87CEEB" rx="1"/></svg>'
+            },
+            {
+                id: 6,
+                correctAnswer: "Ағаш",
+                options: ["Гүл", "Бұта", "Шөп", "Ағаш"],
+                svg: '<svg viewBox="0 0 200 200"><rect x="85" y="115" width="30" height="75" rx="3" fill="#8B4513"/><rect x="88" y="120" width="10" height="60" fill="#A0522D" opacity="0.5"/><circle cx="100" cy="75" r="50" fill="#228B22"/><circle cx="70" cy="65" r="38" fill="#32CD32"/><circle cx="130" cy="65" r="38" fill="#2E8B57"/><circle cx="100" cy="45" r="35" fill="#3CB371"/><circle cx="75" cy="90" r="28" fill="#228B22"/><circle cx="125" cy="90" r="28" fill="#2E8B57"/></svg>'
+            },
+            {
+                id: 7,
+                correctAnswer: "Сағат",
+                options: ["Телефон", "Компьютер", "Сағат", "Теледидар"],
+                svg: '<svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="65" fill="#F5F5F5" stroke="#2C3E50" stroke-width="6"/><circle cx="100" cy="100" r="8" fill="#2C3E50"/><line x1="100" y1="100" x2="100" y2="55" stroke="#2C3E50" stroke-width="5" stroke-linecap="round"/><line x1="100" y1="100" x2="130" y2="100" stroke="#E74C3C" stroke-width="4" stroke-linecap="round"/><text x="100" y="50" text-anchor="middle" font-size="16" font-weight="bold" fill="#2C3E50">12</text><text x="145" y="107" text-anchor="middle" font-size="16" font-weight="bold" fill="#2C3E50">3</text><text x="100" y="157" text-anchor="middle" font-size="16" font-weight="bold" fill="#2C3E50">6</text><text x="55" y="107" text-anchor="middle" font-size="16" font-weight="bold" fill="#2C3E50">9</text><circle cx="100" cy="45" r="3" fill="#2C3E50"/><circle cx="140" cy="100" r="3" fill="#2C3E50"/><circle cx="100" cy="155" r="3" fill="#2C3E50"/><circle cx="60" cy="100" r="3" fill="#2C3E50"/></svg>'
+            },
+            {
+                id: 8,
+                correctAnswer: "Қарбыз",
+                options: ["Қауын", "Асқабақ", "Қияр", "Қарбыз"],
+                svg: '<svg viewBox="0 0 200 200"><ellipse cx="100" cy="105" rx="65" ry="60" fill="#228B22"/><ellipse cx="100" cy="105" rx="60" ry="55" fill="#006400"/><path d="M45 85 Q100 90, 155 85" stroke="#00441B" stroke-width="6" fill="none"/><path d="M40 105 Q100 110, 160 105" stroke="#00441B" stroke-width="6" fill="none"/><path d="M45 125 Q100 130, 155 125" stroke="#00441B" stroke-width="6" fill="none"/><path d="M55 145 Q100 148, 145 145" stroke="#00441B" stroke-width="5" fill="none"/><path d="M100 45 Q105 38, 110 32" stroke="#8B4513" stroke-width="5" fill="none" stroke-linecap="round"/><ellipse cx="115" cy="30" rx="8" ry="5" fill="#228B22"/></svg>'
+            },
+            {
+                id: 9,
+                correctAnswer: "Кітап",
+                options: ["Дәптер", "Кітап", "Газет", "Журнал"],
+                svg: '<svg viewBox="0 0 200 200"><path d="M50 70 L50 160 Q50 165, 55 165 L145 165 Q150 165, 150 160 L150 70 Q150 65, 145 65 L55 65 Q50 65, 50 70 Z" fill="#DC143C"/><path d="M55 70 L55 158 Q55 162, 59 162 L100 162 L100 70 Z" fill="#8B0000"/><path d="M100 70 L100 162 L141 162 Q145 162, 145 158 L145 70 Z" fill="#A52A2A"/><rect x="62" y="80" width="30" height="3" rx="1" fill="#FFD700"/><rect x="62" y="90" width="28" height="2" rx="1" fill="#FFF" opacity="0.7"/><rect x="62" y="98" width="32" height="2" rx="1" fill="#FFF" opacity="0.7"/><rect x="62" y="106" width="25" height="2" rx="1" fill="#FFF" opacity="0.7"/><rect x="108" y="80" width="30" height="3" rx="1" fill="#FFD700"/><rect x="108" y="90" width="28" height="2" rx="1" fill="#FFF" opacity="0.7"/><rect x="108" y="98" width="32" height="2" rx="1" fill="#FFF" opacity="0.7"/><path d="M100 70 L100 162" stroke="#000" stroke-width="2" opacity="0.3"/></svg>'
+            },
+            {
+                id: 10,
+                correctAnswer: "Күн",
+                options: ["Ай", "Күн", "Жұлдыз", "Бұлт"],
+                svg: '<svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="45" fill="#FFD700"/><circle cx="100" cy="100" r="40" fill="#FFA500"/><path d="M100 25 L107 55 L100 55 L93 55 Z" fill="#FFD700"/><path d="M175 100 L145 107 L145 100 L145 93 Z" fill="#FFD700"/><path d="M100 175 L93 145 L100 145 L107 145 Z" fill="#FFD700"/><path d="M25 100 L55 93 L55 100 L55 107 Z" fill="#FFD700"/><path d="M150 50 L127 73 L132 70 L132 77 Z" fill="#FFD700"/><path d="M150 150 L127 127 L125 132 L132 132 Z" fill="#FFD700"/><path d="M50 50 L73 73 L68 70 L68 77 Z" fill="#FFD700"/><path d="M50 150 L73 127 L75 132 L68 132 Z" fill="#FFD700"/></svg>'
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let answered = false;
+
+        function renderQuestion() {
+            const question = questions[currentQuestionIndex];
+            const gameContent = document.getElementById('gameContent');
+            
+            const totalTiles = 48;
+            
+            let mosaicHTML = '';
+            const revealedTiles = new Set();
+            const numRevealed = 8;
+            
+            while (revealedTiles.size < numRevealed) {
+                revealedTiles.add(Math.floor(Math.random() * totalTiles));
+            }
+            
+            for (let i = 0; i < totalTiles; i++) {
+                const isVisible = revealedTiles.has(i) ? 'visible' : '';
+                mosaicHTML += `<div class="mosaic-tile ${isVisible}"></div>`;
+            }
+            
+            gameContent.innerHTML = `
+                <div class="image-card">
+                    <div class="image-container">
+                        <div class="image-svg">${question.svg}</div>
+                        <div class="image-overlay" id="overlay">${mosaicHTML}</div>
+                    </div>
+                    <div class="options-grid" id="optionsGrid">
+                        ${question.options.map(option => `
+                            <button class="option-btn" onclick="checkAnswer('${option}')">${option}</button>
+                        `).join('')}
+                    </div>
+                    <div class="feedback" id="feedback"></div>
+                    <button class="next-btn" id="nextBtn" style="display: none;" onclick="nextQuestion()">Келесі сұрақ ➜</button>
+                </div>
+            `;
+
+            document.getElementById('currentQuestion').textContent = currentQuestionIndex + 1;
+            document.getElementById('totalQuestions').textContent = questions.length;
+            answered = false;
+        }
+
+        function checkAnswer(selectedAnswer) {
+            if (answered) return;
+            
+            answered = true;
+            const question = questions[currentQuestionIndex];
+            const buttons = document.querySelectorAll('.option-btn');
+            const feedback = document.getElementById('feedback');
+            const overlay = document.getElementById('overlay');
+            const nextBtn = document.getElementById('nextBtn');
+            
+            if (selectedAnswer === question.correctAnswer) {
+                score += 10;
+                document.getElementById('score').textContent = score;
+                feedback.textContent = '✓ Дұрыс!';
+                feedback.className = 'feedback correct';
+                
+                overlay.classList.add('revealed');
+                
+                buttons.forEach(btn => {
+                    if (btn.textContent === selectedAnswer) {
+                        btn.classList.add('correct');
+                    }
+                    btn.disabled = true;
+                });
+            } else {
+                feedback.textContent = `✗ Дұрыс жауап: ${question.correctAnswer}`;
+                feedback.className = 'feedback incorrect';
+                
+                overlay.classList.add('revealed');
+                
+                buttons.forEach(btn => {
+                    if (btn.textContent === selectedAnswer) {
+                        btn.classList.add('incorrect');
+                    } else if (btn.textContent === question.correctAnswer) {
+                        btn.classList.add('correct');
+                    }
+                    btn.disabled = true;
+                });
+            }
+            
+            nextBtn.style.display = 'block';
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            
+            if (currentQuestionIndex < questions.length) {
+                renderQuestion();
+            } else {
+                showCompletion();
+            }
+        }
+
+        function showCompletion() {
+            const gameContent = document.getElementById('gameContent');
+            const percentage = Math.round((score / 100) * 100);
+            let emoji = '🎉';
+            let message = 'Тамаша!';
+            let trophySvg = '';
+            
+            if (percentage === 100) {
+                emoji = '🏆';
+                message = 'Өте жақсы! Барлық жауап дұрыс!';
+                trophySvg = `
+                    <svg width="150" height="150" viewBox="0 0 200 200">
+                        <path d="M60 80 L60 50 L50 50 Q40 50, 40 60 L40 80 Q40 95, 50 100 L60 100" fill="#FFD700" stroke="#DAA520" stroke-width="2"/>
+                        <path d="M140 80 L140 50 L150 50 Q160 50, 160 60 L160 80 Q160 95, 150 100 L140 100" fill="#FFD700" stroke="#DAA520" stroke-width="2"/>
+                        <rect x="70" y="50" width="60" height="60" rx="5" fill="#FFD700" stroke="#DAA520" stroke-width="2"/>
+                        <rect x="85" y="110" width="30" height="40" fill="#FFD700" stroke="#DAA520" stroke-width="2"/>
+                        <ellipse cx="100" cy="155" rx="35" ry="8" fill="#FFD700" stroke="#DAA520" stroke-width="2"/>
+                        <text x="100" y="85" text-anchor="middle" font-size="28" font-weight="bold" fill="#DAA520">1</text>
+                    </svg>
+                `;
+            } else if (percentage >= 70) {
+                emoji = '🥈';
+                message = 'Жақсы нәтиже!';
+                trophySvg = `
+                    <svg width="150" height="150" viewBox="0 0 200 200">
+                        <path d="M60 80 L60 50 L50 50 Q40 50, 40 60 L40 80 Q40 95, 50 100 L60 100" fill="#C0C0C0" stroke="#A8A8A8" stroke-width="2"/>
+                        <path d="M140 80 L140 50 L150 50 Q160 50, 160 60 L160 80 Q160 95, 150 100 L140 100" fill="#C0C0C0" stroke="#A8A8A8" stroke-width="2"/>
+                        <rect x="70" y="50" width="60" height="60" rx="5" fill="#C0C0C0" stroke="#A8A8A8" stroke-width="2"/>
+                        <rect x="85" y="110" width="30" height="40" fill="#C0C0C0" stroke="#A8A8A8" stroke-width="2"/>
+                        <ellipse cx="100" cy="155" rx="35" ry="8" fill="#C0C0C0" stroke="#A8A8A8" stroke-width="2"/>
+                        <text x="100" y="85" text-anchor="middle" font-size="28" font-weight="bold" fill="#808080">2</text>
+                    </svg>
+                `;
+            } else if (percentage >= 50) {
+                emoji = '👍';
+                message = 'Жарайсың!';
+            } else {
+                emoji = '💪';
+                message = 'Әрекетіңізді жалғастырыңыз!';
+            }
+            
+            gameContent.innerHTML = `
+                <div class="completion-screen">
+                    <div class="completion-emoji">${emoji}</div>
+                    ${trophySvg ? `<div class="trophy-container">${trophySvg}</div>` : ''}
+                    <h2 class="completion-title">${message}</h2>
+                    <p class="completion-score">Сіздің ұпайыңыз: <strong>${score}</strong> / 100 (${percentage}%)</p>
+                    <button class="restart-btn" onclick="restartGame()">Қайта бастау</button>
+                </div>
+            `;
+        }
+
+        function restartGame() {
+            currentQuestionIndex = 0;
+            score = 0;
+            answered = false;
+            document.getElementById('score').textContent = score;
+            renderQuestion();
+        }
+
+        async function onConfigChange(newConfig) {
+            const titleElement = document.getElementById('gameTitle');
+            const instructionElement = document.getElementById('instructionText');
+            
+            if (titleElement) {
+                titleElement.textContent = newConfig.game_title || defaultConfig.game_title;
+            }
+            if (instructionElement) {
+                instructionElement.textContent = newConfig.instruction_text || defaultConfig.instruction_text;
+            }
+        }
+
+        function mapToCapabilities(cfg) {
+            return {
+                recolorables: [],
+                borderables: [],
+                fontEditable: undefined,
+                fontSizeable: undefined
+            };
+        }
+
+        function mapToEditPanelValues(cfg) {
+            return new Map([
+                ["game_title", cfg.game_title || defaultConfig.game_title],
+                ["instruction_text", cfg.instruction_text || defaultConfig.instruction_text]
+            ]);
+        }
+
+        if (window.elementSdk) {
+            window.elementSdk.init({
+                defaultConfig,
+                onConfigChange,
+                mapToCapabilities,
+                mapToEditPanelValues
+            });
+            config = window.elementSdk.config;
+        }
+
+        renderQuestion();
+    </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9ac94b5fd65bc931',t:'MTc2NTUwMTMyNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Тұрақты Тіркес</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Montserrat:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #0072BC;
+            --accent-gold: #F2C14E;
+            --bg-color: #F7F7F7;
+            --correct-green: #3CB371;
+            --error-red: #E74C3C;
+            --text-color: #333;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            color: var(--text-color);
+            height: 100vh;
+            overflow: hidden; /* App like feel */
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Ою өрнегі (CSS Pattern арқылы фон) */
+        .ornament-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%230072BC' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            z-index: -1;
+        }
+
+        /* Экран контейнері */
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            background: rgba(255, 255, 255, 0.9);
+            height: 100%;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 20px rgba(0,0,0,0.05);
+        }
+
+        /* Screen Management */
+        .screen {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            padding: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .screen.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Typography */
+        h1, h2, h3 {
+            font-family: 'Montserrat', sans-serif;
+            color: var(--primary-blue);
+            text-align: center;
+        }
+
+        /* Buttons */
+        .btn {
+            background: white;
+            border: 2px solid var(--primary-blue);
+            color: var(--primary-blue);
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 12px;
+            transition: all 0.2s;
+            min-height: 50px; /* 44px+ standard */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary {
+            background: var(--primary-blue);
+            color: white;
+            font-size: 18px;
+            border: none;
+            box-shadow: 0 4px 10px rgba(0, 114, 188, 0.3);
+        }
+
+        .btn-gold {
+            background: var(--accent-gold);
+            color: #fff;
+            border: none;
+            color: #333;
+        }
+
+        /* Home Screen */
+        .logo-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .logo-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: var(--primary-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            border: 4px solid var(--accent-gold);
+        }
+        
+        .logo-text {
+            font-size: 40px;
+            color: white;
+        }
+
+        /* Modes Grid */
+        .modes-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .mode-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            border: 1px solid #eee;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .mode-card:hover {
+            border-color: var(--primary-blue);
+            transform: translateY(-2px);
+        }
+
+        .mode-icon {
+            font-size: 30px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        /* Game Screen */
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            font-weight: bold;
+            color: #777;
+        }
+
+        .question-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .phrase-text {
+            font-size: 28px;
+            font-family: 'Montserrat', sans-serif;
+            color: var(--primary-blue);
+            margin-bottom: 10px;
+        }
+
+        .answers-area {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        /* Feedback colors */
+        .btn.correct { background-color: var(--correct-green) !important; color: white !important; border-color: var(--correct-green) !important; }
+        .btn.wrong { background-color: var(--error-red) !important; color: white !important; border-color: var(--error-red) !important; }
+
+        /* Result Screen */
+        .result-score {
+            font-size: 48px;
+            font-family: 'Montserrat', sans-serif;
+            color: var(--primary-blue);
+            margin: 20px 0;
+        }
+
+        .error-review {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            text-align: left;
+            border-left: 4px solid var(--error-red);
+            font-size: 14px;
+        }
+
+        /* Dictionary */
+        .search-bar {
+            padding: 12px;
+            width: 100%;
+            border: 2px solid #eee;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        
+        .dict-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+        }
+
+        /* Navigation Bottom (Optional for future) */
+        .nav-back {
+            background: transparent;
+            border: none;
+            color: #777;
+            font-size: 14px;
+            padding: 10px;
+            cursor: pointer;
+            align-self: flex-start;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="ornament-bg"></div>
+
+    <div class="app-container">
+        
+        <div id="home-screen" class="screen active">
+            <div class="logo-area">
+                <div class="logo-circle">
+                    <span class="logo-text">ТТ</span>
+                </div>
+                <h1>ТҰРАҚТЫ ТІРКЕС</h1>
+                <p style="color: #666;">Қазақ тілінің байлығын меңгер</p>
+            </div>
+            
+            <button class="btn btn-primary" onclick="showScreen('modes-screen')">ОЙЫНДЫ БАСТАУ</button>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <button class="btn" onclick="showScreen('dictionary-screen')">📚 Сөздік</button>
+                <button class="btn" onclick="showScreen('profile-screen')">👤 Профиль</button>
+            </div>
+        </div>
+
+        <div id="modes-screen" class="screen">
+            <button class="nav-back" onclick="showScreen('home-screen')">← Артқа</button>
+            <h2>Режимді таңда</h2>
+            
+            <div class="modes-grid">
+                <div class="mode-card" onclick="startGame('classic')">
+                    <span class="mode-icon">🎯</span>
+                    <strong>Классикалық</strong>
+                    <p style="font-size: 12px; color: #666;">Асықпай жауап бер</p>
+                </div>
+                <div class="mode-card" onclick="startGame('time')">
+                    <span class="mode-icon">⏳</span>
+                    <strong>Уақытпен</strong>
+                    <p style="font-size: 12px; color: #666;">10 секунд ғана!</p>
+                </div>
+                <div class="mode-card" style="opacity: 0.6;">
+                    <span class="mode-icon">🖼️</span>
+                    <strong>Суреттер</strong>
+                    <p style="font-size: 12px; color: #666;">Жақында...</p>
+                </div>
+                <div class="mode-card" style="opacity: 0.6;">
+                    <span class="mode-icon">⚔️</span>
+                    <strong>Дуэль</strong>
+                    <p style="font-size: 12px; color: #666;">Жақында...</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="game-screen" class="screen">
+            <div class="game-header">
+                <span id="round-indicator">1/10</span>
+                <span id="timer-display" style="color: var(--error-red); font-weight: bold;"></span>
+                <span>Ұпай: <span id="score-display">0</span></span>
+            </div>
+
+            <div class="question-area">
+                <div class="phrase-text" id="question-text">Ит өлген жер</div>
+                <p style="color: #666; font-size: 14px;">Мағынасын тап:</p>
+            </div>
+
+            <div class="answers-area" id="answers-container">
+                </div>
+        </div>
+
+        <div id="result-screen" class="screen">
+            <div class="logo-area">
+                <h2>Ойын аяқталды!</h2>
+                <div class="result-score" id="final-score">8/10</div>
+                <p id="feedback-text">Жаман емес! Тағы да сынап көр!</p>
+            </div>
+
+            <div id="error-review-container" style="max-height: 200px; overflow-y: auto; width: 100%; margin-bottom: 20px;">
+                </div>
+
+            <button class="btn btn-primary" onclick="showScreen('modes-screen')">Қайта ойнау</button>
+            <button class="btn" onclick="showScreen('home-screen')">Бас мәзір</button>
+        </div>
+
+        <div id="dictionary-screen" class="screen">
+            <button class="nav-back" onclick="showScreen('home-screen')">← Артқа</button>
+            <h2>Сөздік</h2>
+            <input type="text" class="search-bar" placeholder="Тіркесті іздеу..." onkeyup="filterDictionary(this.value)">
+            <div id="dictionary-list" style="overflow-y: auto; flex: 1;">
+                </div>
+        </div>
+
+        <div id="profile-screen" class="screen">
+            <button class="nav-back" onclick="showScreen('home-screen')">← Артқа</button>
+            <div style="text-align: center; margin-bottom: 20px;">
+                <div class="logo-circle" style="width: 80px; height: 80px; margin: 0 auto 10px; font-size: 24px; color: white;">
+                    👤
+                </div>
+                <h3>Қолданушы</h3>
+            </div>
+            
+            <div style="background: white; padding: 15px; border-radius: 10px; margin-bottom: 10px;">
+                <strong>Жалпы ұпай:</strong> <span style="float: right; color: var(--primary-blue);">1250</span>
+            </div>
+            <div style="background: white; padding: 15px; border-radius: 10px; margin-bottom: 10px;">
+                <strong>Білген тіркестер:</strong> <span style="float: right; color: var(--primary-blue);">45</span>
+            </div>
+            
+            <h3>Жетістіктер</h3>
+            <div style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px;">
+                <div style="min-width: 80px; height: 80px; background: #FFF9E5; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid var(--accent-gold);">
+                    <span>🥇</span>
+                    <span style="font-size: 10px; margin-top: 5px;">Алғашқы жеңіс</span>
+                </div>
+                <div style="min-width: 80px; height: 80px; background: white; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid #eee; opacity: 0.5;">
+                    <span>⚡</span>
+                    <span style="font-size: 10px; margin-top: 5px;">Жылдамдық</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- DATA (Деректер базасы) ---
+        const idioms = [
+            { phrase: "Ит өлген жер", meaning: "Өте алыс жер", wrongs: ["Лас жер", "Қауіпті жер", "Мал жайылымы"] },
+            { phrase: "Төбесі көкке жетті", meaning: "Қатты қуанды", wrongs: ["Бойы өсті", "Ашуланды", "Қорықты"] },
+            { phrase: "Қой аузынан шөп алмас", meaning: "Момын, жуас", wrongs: ["Жалқау адам", "Шөп жемейтін қой", "Сараң адам"] },
+            { phrase: "Көз бояу", meaning: "Алдау, өтірік айту", wrongs: ["Макияж жасау", "Көзді емдеу", "Шындықты айту"] },
+            { phrase: "Ат тонын ала қашу", meaning: "Жауапкершіліктен қашу", wrongs: ["Атпен жарысу", "Киім тігу", "Ұрлық жасау"] },
+            { phrase: "Таяқ тастам жер", meaning: "Өте жақын", wrongs: ["Алыс жер", "Орман іші", "Таулы аймақ"] },
+            { phrase: "Беті бүлк етпеді", meaning: "Ұялмады, қысылмады", wrongs: ["Беті ауырды", "Күлді", "Жылады"] },
+            { phrase: "Мұрнын шүйіру", meaning: "Менменсу, жақтырмау", wrongs: ["Тұмау болу", "Иіс сезу", "Мұрнын тазалау"] },
+            { phrase: "Қуанышы қойнына сыймау", meaning: "Шаттану", wrongs: ["Киімі тар болу", "Ренжу", "Құшақтасу"] },
+            { phrase: "Жерден жеті қоян тапқандай", meaning: "Олжаға кенелу, қуану", wrongs: ["Аңшылыққа шығу", "Жоғалған затты іздеу", "Қоян өсіру"] }
+        ];
+
+        // --- GAME STATE ---
+        let currentMode = '';
+        let currentQuestions = [];
+        let currentIndex = 0;
+        let score = 0;
+        let timerInterval;
+        let errors = [];
+
+        // --- NAVIGATION LOGIC ---
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        // --- GAME LOGIC ---
+        function startGame(mode) {
+            currentMode = mode;
+            score = 0;
+            currentIndex = 0;
+            errors = [];
+            // Сұрақтарды араластыру
+            currentQuestions = [...idioms].sort(() => 0.5 - Math.random()).slice(0, 5); // 5 сұрақ аламыз
+            
+            showScreen('game-screen');
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            if (currentIndex >= currentQuestions.length) {
+                endGame();
+                return;
+            }
+
+            const data = currentQuestions[currentIndex];
+            const roundDisplay = document.getElementById('round-indicator');
+            const scoreDisplay = document.getElementById('score-display');
+            const timerDisplay = document.getElementById('timer-display');
+            
+            roundDisplay.innerText = `${currentIndex + 1}/${currentQuestions.length}`;
+            scoreDisplay.innerText = score;
+            document.getElementById('question-text').innerText = data.phrase;
+
+            // Жауап нұсқаларын дайындау
+            let answers = [data.meaning, ...data.wrongs];
+            answers.sort(() => 0.5 - Math.random()); // Араластыру
+
+            const container = document.getElementById('answers-container');
+            container.innerHTML = '';
+
+            answers.forEach(ans => {
+                const btn = document.createElement('button');
+                btn.className = 'btn';
+                btn.innerText = ans;
+                btn.onclick = () => handleAnswer(btn, ans === data.meaning);
+                container.appendChild(btn);
+            });
+
+            // Таймер логикасы
+            clearInterval(timerInterval);
+            timerDisplay.innerText = '';
+            if (currentMode === 'time') {
+                let timeLeft = 10;
+                timerDisplay.innerText = `⏱ ${timeLeft}`;
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    timerDisplay.innerText = `⏱ ${timeLeft}`;
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        handleAnswer(null, false); // Уақыт бітті = қате
+                    }
+                }, 1000);
+            }
+        }
+
+        function handleAnswer(btnElement, isCorrect) {
+            clearInterval(timerInterval);
+            
+            // Вибрация (телефонда жұмыс істейді)
+            if (navigator.vibrate) navigator.vibrate(isCorrect ? 50 : 200);
+
+            const allBtns = document.getElementById('answers-container').children;
+            const currentQ = currentQuestions[currentIndex];
+
+            if (btnElement) {
+                if (isCorrect) {
+                    btnElement.classList.add('correct');
+                    score++;
+                } else {
+                    btnElement.classList.add('wrong');
+                    // Қателер тізіміне қосу
+                    errors.push(currentQ);
+                }
+            } else {
+                // Уақыт біткен жағдай
+                errors.push(currentQ);
+            }
+
+            // Барлық батырмаларды өшіру
+            for(let btn of allBtns) {
+                btn.disabled = true;
+                if(btn.innerText === currentQ.meaning) {
+                    btn.classList.add('correct'); // Дұрыс жауапты көрсету
+                }
+            }
+
+            // 1 секунд кідіріс
+            setTimeout(() => {
+                currentIndex++;
+                loadQuestion();
+            }, 1200);
+        }
+
+        function endGame() {
+            showScreen('result-screen');
+            document.getElementById('final-score').innerText = `${score}/${currentQuestions.length}`;
+            
+            const feedback = document.getElementById('feedback-text');
+            if(score === currentQuestions.length) feedback.innerText = "Керемет! Нағыз тіл шебері!";
+            else if(score > currentQuestions.length / 2) feedback.innerText = "Жақсы нәтиже! Бірақ әлі де іздену керек.";
+            else feedback.innerText = "Әттеген-ай! Қайталап ойнап көр.";
+
+            // Қателермен жұмыс
+            const errorContainer = document.getElementById('error-review-container');
+            errorContainer.innerHTML = '';
+            if (errors.length > 0) {
+                const header = document.createElement('h4');
+                header.innerText = "Қатемен жұмыс:";
+                errorContainer.appendChild(header);
+                
+                errors.forEach(err => {
+                    const div = document.createElement('div');
+                    div.className = 'error-review';
+                    div.innerHTML = `<b>${err.phrase}</b> — ${err.meaning}`;
+                    errorContainer.appendChild(div);
+                });
+            }
+        }
+
+        // --- DICTIONARY LOGIC ---
+        function loadDictionary() {
+            const list = document.getElementById('dictionary-list');
+            list.innerHTML = '';
+            idioms.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'dict-item';
+                div.innerHTML = `<strong>${item.phrase}</strong><br><span style="color:#666">${item.meaning}</span>`;
+                list.appendChild(div);
+            });
+        }
+        
+        function filterDictionary(query) {
+            const items = document.querySelectorAll('.dict-item');
+            items.forEach(item => {
+                const text = item.innerText.toLowerCase();
+                if(text.includes(query.toLowerCase())) item.style.display = 'block';
+                else item.style.display = 'none';
+            });
+        }
+
+        // Initialize Dictionary on load
+        loadDictionary();
+
+    </script>
+</body>
+</html>
